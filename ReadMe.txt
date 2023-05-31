@@ -11,5 +11,4 @@ The repo is split into two part:
    Do not move any files around into different folders.
 
 2) The main part of the assignment is located inside the SOK-1005_Prosjektoppgave_V23.qmd.
-   Make sure to run the SOK-1005_Prosjektoppgave_V23_Data.qmd first.
    The assignment will output a html document when rendered and was made to look best using Google Chrome. 
