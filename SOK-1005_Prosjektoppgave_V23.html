@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.1.251">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="06">
+
+<title>SOK-1005_Prosjektoppgave_V23</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1.6em;
+  vertical-align: middle;
+}
+</style>
+
+
+<script src="SOK-1005_Prosjektoppgave_V23_files/libs/clipboard/clipboard.min.js"></script>
+<script src="SOK-1005_Prosjektoppgave_V23_files/libs/quarto-html/quarto.js"></script>
+<script src="SOK-1005_Prosjektoppgave_V23_files/libs/quarto-html/popper.min.js"></script>
+<script src="SOK-1005_Prosjektoppgave_V23_files/libs/quarto-html/tippy.umd.min.js"></script>
+<script src="SOK-1005_Prosjektoppgave_V23_files/libs/quarto-html/anchor.min.js"></script>
+<link href="SOK-1005_Prosjektoppgave_V23_files/libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="SOK-1005_Prosjektoppgave_V23_files/libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="SOK-1005_Prosjektoppgave_V23_files/libs/bootstrap/bootstrap.min.js"></script>
+<link href="SOK-1005_Prosjektoppgave_V23_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="SOK-1005_Prosjektoppgave_V23_files/libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
+
+<script src="SOK-1005_Prosjektoppgave_V23_files/libs/kePrint-0.0.1/kePrint.js"></script>
+<link href="SOK-1005_Prosjektoppgave_V23_files/libs/lightable-0.0.1/lightable.css" rel="stylesheet">
+
+
+</head>
+
+<body class="fullcontent">
+
+<div id="quarto-content" class="page-columns page-rows-contents page-layout-article">
+
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">SOK-1005_Prosjektoppgave_V23</h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    <div>
+    <div class="quarto-title-meta-heading">Author</div>
+    <div class="quarto-title-meta-contents">
+             <p>06 </p>
+          </div>
+  </div>
+    
+    
+  </div>
+  
+
+</header>
+
+<section id="introduksjon" class="level1">
+<h1>Introduksjon</h1>
+<p>Bakgrunnen for denne prosjektoppgaven i SOK-1005 (datavitenskap for økonomer) er at jeg er ansatt som analytiker i Insight Analytics (IA), og selskapet som eier dataen jeg skal benytte meg av har lyst ut en anbudskonkurranse. De ønsker å få utviklet et system som rapporterer salg for alle utsalgssteder i sitt konsern. Dataen skal benyttes for å vise hva jeg kan levere på. Alt potensiell data som kan bli inkludert i oppgave 2-4 vil ikke bli visualisert og fokuset vil være på korte, men presise rapporter som raskt gir ledelsen ett overblikk over selskapets resultat. Relevant data som ikke blir visualisert vil bli nevnt i tekst format og kan bli lagt inn visst selskapet velger Insight Analytics (IA).</p>
+<p>Dataen som skal benyttes i denne oppgaven er hentet fra <a href="https://www.chicagobooth.edu/research/kilts/datasets/dominicks">Dominick’s Dataset</a>. Datasettet dekker skannerdata på butikknivå samlet inn hos Dominick’s Finer Foods over en periode på mer enn syv år. Datasettet inneholder to typer filer: kategorispesifikke filer og generelle filer. De generelle filene inneholder informasjon om alle kategoriene i prosjektet.</p>
+<div class="cell">
+
+</div>
+<div class="cell">
+
+</div>
+<div class="cell">
+
+</div>
+<div class="cell">
+
+</div>
+</section>
+<section id="innhenting-av-data-oppgave-1" class="level1">
+<h1>Innhenting av data (oppgave 1)</h1>
+<p>I oppgave 1 skal vi skrive R/Python kode som slår sammen de 4 datasettene hentet fra <a href="https://www.chicagobooth.edu/research/kilts/datasets/dominicks">Dominick’s Dataset</a>. Denne oppgaven er gjennomført i en separat qmd fil i dette GitHub reposetoriet: Data/SOK-1005_Prosjektoppgave_V23_Data.qmd. Dataen fra denne qmd filen er blitt lagret i samme mappe som en csv fil (Data/Dataframe_Project.csv). Det er denne filen vi skal bruke videre i denne prosjektoppgaven.</p>
+</section>
+<section id="ukentlig-salgsrapport-oppgave-2" class="level1">
+<h1>Ukentlig salgsrapport (oppgave 2)</h1>
+<p>I oppgave 2 skal vi benytte dataen i oppgave 1 til en ukentlig salgsrapport til et enkelt utsalg.</p>
+<p>En ukentlig salgsrapport for et enkelt utsalg bør gi en oversikt over produktets ytelse, identifisere trender og utforske områder som kan forbedres. I denne rapporten vil vi ta utgangspunkt i at uke 18 er den aktuelle uken og at ledelsen ser på denne rapporten i starten av uke 19. Nedenfor følger noen punkter og figurer jeg mener bør være en del av denne salgsrapporten.</p>
+<p><strong>Ukentlig salgssammendrag</strong></p>
+<p>Det ukentlige salgssammendraget bør inneholde ett sammendrag av salget den aktuelle uken og/eller sammenlignes med tidligere uker. Hensikten med denne oversikten er at ledelsen raskt får en forståelse av hvordan produktet presterer denne uken og identifisere eventuelle endringer i fra trenden. Tabellene nedenfor viser det totale salget i antall, gj.snittlig fortjeneste, gj.snittlig salgspris og det totale salget (USD). Med bruk av en slik tabell kan ledelsen enkelt se mønster og hva som er gjort forskjellig den aktuelle uken mot tidligere uker.</p>
+<p><strong><em>Chicken pasta summary all stores, week 15 - 18, 1993</em></strong></p>
+<div class="cell">
+
+</div>
+<div class="cell">
+<div class="cell-output-display">
+
+<table class="table table-striped" style="margin-left: auto; margin-right: auto;">
+ <thead>
+  <tr>
+   <th style="text-align:center;"> Week </th>
+   <th style="text-align:center;"> Total sold (qty) </th>
+   <th style="text-align:center;"> Avg. profitt (%) </th>
+   <th style="text-align:center;"> Avg. price (USD) </th>
+   <th style="text-align:center;"> Total sale (USD) </th>
+   <th style="text-align:center;"> Net Profit (USD) </th>
+  </tr>
+ </thead>
+<tbody>
+  <tr>
+   <td style="text-align:center;"> 15 </td>
+   <td style="text-align:center;"> 76 </td>
+   <td style="text-align:center;"> 41.52 </td>
+   <td style="text-align:center;"> 3.32 </td>
+   <td style="text-align:center;"> 250.01 </td>
+   <td style="text-align:center;"> 103.80 </td>
+  </tr>
+  <tr>
+   <td style="text-align:center;"> 16 </td>
+   <td style="text-align:center;"> 1464 </td>
+   <td style="text-align:center;"> 31.03 </td>
+   <td style="text-align:center;"> 2.36 </td>
+   <td style="text-align:center;"> 3445.74 </td>
+   <td style="text-align:center;"> 1069.21 </td>
+  </tr>
+  <tr>
+   <td style="text-align:center;"> 17 </td>
+   <td style="text-align:center;"> 74 </td>
+   <td style="text-align:center;"> 43.21 </td>
+   <td style="text-align:center;"> 3.33 </td>
+   <td style="text-align:center;"> 246.90 </td>
+   <td style="text-align:center;"> 106.69 </td>
+  </tr>
+  <tr>
+   <td style="text-align:center;font-weight: bold;font-style: italic;background-color: #B2D2A4 !important;"> 18 </td>
+   <td style="text-align:center;font-weight: bold;font-style: italic;background-color: #B2D2A4 !important;"> 76 </td>
+   <td style="text-align:center;font-weight: bold;font-style: italic;background-color: #B2D2A4 !important;"> 44.23 </td>
+   <td style="text-align:center;font-weight: bold;font-style: italic;background-color: #B2D2A4 !important;"> 3.40 </td>
+   <td style="text-align:center;font-weight: bold;font-style: italic;background-color: #B2D2A4 !important;"> 256.10 </td>
+   <td style="text-align:center;font-weight: bold;font-style: italic;background-color: #B2D2A4 !important;"> 113.27 </td>
+  </tr>
+</tbody>
+</table>
+
+</div>
+</div>
+<p><em>Source: Dominick’s Dataset</em></p>
+<p>Når selskapet er så stort som det er i dette datasettet kan det også være hensiktsmessig og se på hvilke regioner/butikker som totalt sett har solgt mest den aktuelle uken. På denne måten kan ledelsen gå inn å se på butikken/butikkene som har solgt mest og se hva de gjør annerledes. På figuren under kan vi se total salg per by/region, dette kan også gjøres med butikker.</p>
+<div class="cell">
+
+</div>
+<div class="cell">
+<div class="cell-output-display">
+<p><img src="SOK-1005_Prosjektoppgave_V23_files/figure-html/unnamed-chunk-8-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+<p>I begge figurene over kan det også være hensiktsmessig å se på tall fra samme uke året før. Dette vil gi ledelsen ett bedre bilde om hvordan utviklingen egentlig har vært. Visst noen produkter selger bedre på forskjellige årstider er det naturlig med oppgang/nedgang i perioder. Men visst man sammenligner med året før vil forutsetningene for salg være likere. Det kan også være hensiktsmessig å se på daglig data for å få en oversikt over om produktet selger bedre på noen dager enn andre. I denne prosjektoppgaven har vi kun valgt data fra 1 år, på ukentlig nivå, så dette vil ikke bli visualisert.</p>
+</section>
+<section id="månedlig-salgsrapport-oppgave-3" class="level1">
+<h1>Månedlig salgsrapport (oppgave 3)</h1>
+<p>I oppgave 3 skal vi benytte dataen i oppgave 1 til en månedlig salgsrapport på aggregert nivå til konsernledelsen.</p>
+<p>En månedlig salgsrapport på aggregert nivå bør gi konsernledelsen en oversikt over selskapet samlede salgsytelse og nøkkelinformasjon som gir innsikt i de forskjellige butikkene/områdenes resultater som kan bidra i beslutningsprosesser. I denne rapporten vil vi ta utgangspunkt i at uke 18 er den aktuelle uken og at ledelsen ser på denne rapporten i starten av uke 19. Det vil i denne rapporten være fokus på brutto total salg, dette kan endres til netto ved å gange med avg. profitt variabelen. Det vil ikke være hensiktsmessig å ha begge deler siden figurene vil se helt lik ut bare en prosentandell høyere/lavere. Nedenfor følger noen punkter jeg mener bør være en del av den månedlige salgsrapporten.</p>
+<p><strong>Månedlig salgssammendrag</strong></p>
+<p>Et månedlig salgssammendrag bør vise konsernledelsen de månedlige salgsresultatene. På figuren nedenfor kan vi se de totale ukentlige resultatene gjennom hele året så langt, samt at det er lagt inn en “dummy” som representerer året før. Hensikten med denne figuren er å gi konsernledelsen en forståelse for konsernets generelle ytelse og identifisere trender, som f.eks. uke 16. Med å sammenligne med året før vil man kunne si mere om det er trender som gjentar seg eller om det er mer “tilfeldig”.</p>
+<div class="cell">
+
+</div>
+<div class="cell">
+
+</div>
+<div class="cell">
+<div class="cell-output-display">
+<p><img src="SOK-1005_Prosjektoppgave_V23_files/figure-html/unnamed-chunk-11-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+<p><strong>Salg etter produkt/merke</strong></p>
+<p>Det vil også være hensiktsmessig for ledelsen å få ett overblikk over ytelsen til merkene blant “frozen dinner” produktene. Dette vil kunne hjelpe ledelsen i framtidige avgjørelsen om hvilke merker, eventuelt produkter de vil fortsette å selge, og hvilke de vil bytte ut. På figuren nedenfor ser vi dette visualisert.</p>
+<div class="cell">
+
+</div>
+<div class="cell">
+<div class="cell-output-display">
+<p><img src="SOK-1005_Prosjektoppgave_V23_files/figure-html/unnamed-chunk-13-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+<p><strong>Kundeinformasjon</strong></p>
+<p>Kundeinformasjonen bør gi ledelsen ett overblikk over utviklingen av antall kunder og hvilke kunder som har handlet de siste månedene. Dette vil hjelpe ledelsen med å forstå sammensetningen av kunder som handler i deres butikk, og i framtiden kunne ta avgjørelser som styrker kunderelasjoner og øke salget. Nedenfor kan vi se antall kunder per uke så lang i år. Her kan det også inkluderes ett “pie-chart” av de største kundegruppene, men siden butikkene er lokalisert på så forskjellige området vil det på aggregert nivå ikke kunne gi nøyaktig nokk data. Vi vil komme tilbake til hvordan dette kan gjøres i oppgave 4.</p>
+<div class="cell">
+
+</div>
+<div class="cell">
+<div class="cell-output-display">
+<p><img src="SOK-1005_Prosjektoppgave_V23_files/figure-html/unnamed-chunk-15-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+<p><strong>Salg etter geografisk område</strong></p>
+<p>Etter at ledelsen har fått en oversikt over hele konsernet på aggregert nivå kan det være hensiktsmessig å gi en oversikt over hvilke butikker som har solgt mest og minst av “frozen dinner” produktene. Dette kan hjelpe ledelsen med å identifisere hvilke butikker som presterer best og hvilke butikker som kan forbedres. Her kan ledelsen se på hva butikkene som selger mest gjør, kontra butikkene som selger minst.</p>
+<div class="cell">
+
+</div>
+<div class="cell">
+
+</div>
+<div class="cell">
+
+</div>
+<div class="cell">
+<div class="cell-output-display">
+<p><img src="SOK-1005_Prosjektoppgave_V23_files/figure-html/unnamed-chunk-19-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+<p>Det kan også være hensiktsmessig å se på hvilke regioner/byer som selger mest total sett uavhengig av butikker for å få en indikasjon på hvor etterspørselen etter “frozen dinner” er størst. Vi vil gå enda mer i detalj på dette i oppgave 4.</p>
+<div class="cell">
+
+</div>
+<div class="cell">
+
+</div>
+<div class="cell">
+
+</div>
+<div class="cell">
+<div class="cell-output-display">
+<p><img src="SOK-1005_Prosjektoppgave_V23_files/figure-html/unnamed-chunk-23-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+<p><strong>Prognoser</strong></p>
+<p>Avslutningsvis i en månedlig salgsrapport kan det være gunstig for ledelsen å få ett overblikk over hvordan utviklingen kan forventes å være framover. Dette kan/bør være en egen rapport, men på figurene under kan vi se en enkel lineær modell som tar utgangspunkt i både salgene til alle butikkene, men også det totale salget. Figuren som viser alle butikkene vil gi en indikasjon av forventet salg per butikk, mens figuren som viser summen av alle butikkene vil gi en indikasjon av forventet salg på konsern nivå. Det gråe området rundt linjen på figuren med summen av alle butikkene representerer SE (standard error). En kort forklaring på dette er at SE viser feilmarginen til målingen.</p>
+<div class="cell">
+
+</div>
+<div class="cell">
+
+</div>
+<div class="cell">
+
+</div>
+<div class="cell">
+<div class="cell-output-display">
+<p><img src="SOK-1005_Prosjektoppgave_V23_files/figure-html/unnamed-chunk-27-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+</section>
+<section id="nye-utsalg-oppgave-4" class="level1">
+<h1>Nye utsalg (oppgave 4)</h1>
+<p>I oppgave 4 skal vi se på om dataen kan benyttes til å planlegge nye utsalg og hvordan konsernledelsen kan benytte dataen til å finne den beste lokasjonen.</p>
+<p>Vi vil i denne oppgaven ta utgangspunkt i at ledelsen ser på denne rapporten i starten av uke 19. For å planlegge nye utsalg kan det være hensiktsmessig å se på salgsdata etter geografisk område. På denne måten kan ledelsen identifisere områder med høyt salg, noe som kan indikere høy etterspørsel.</p>
+<div class="cell">
+
+</div>
+<div class="cell">
+
+</div>
+<div class="cell">
+
+</div>
+<div class="cell">
+<div class="cell-output-display">
+<p><img src="SOK-1005_Prosjektoppgave_V23_files/figure-html/unnamed-chunk-31-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+<p>På kartet over kan vi se Chicago området med alle butikkene markert etter farge og størrelse som representerer totale salg i USD. På denne måten kan ledelsen lokalisere mulige lokasjoner for nye utsalg med å se på hvor de har høye salg. For eksempel i Joliet (nede til venstre) kan vi se at det er en enkelt butikk med høyt totalt salg. Her kan det være interessant for ledelsen og se på kundeprofiler og kjøpsatferd for denne butikken slik at de får en bedre forståelse for hvorfor denne butikken selger så bra, i motsetning til butikkene i for eksempel Aurora området. Under følger en tabell som ett eksempel på disse kundegruppene.</p>
+<p><strong><em>Avg. customer groups for Joliet, week 2 - 18, 1993</em></strong></p>
+<div class="cell">
+<div class="cell-output-display">
+
+<table class="table table-striped" style="margin-left: auto; margin-right: auto;">
+ <thead>
+  <tr>
+   <th style="text-align:center;"> Median Income (USD) </th>
+   <th style="text-align:center;"> Avg. Household Size </th>
+   <th style="text-align:center;"> % with No Vehicles </th>
+   <th style="text-align:center;"> % College Graduates </th>
+   <th style="text-align:center;"> % Pop over age 60 </th>
+   <th style="text-align:center;"> % of household with over $200k </th>
+  </tr>
+ </thead>
+<tbody>
+  <tr>
+   <td style="text-align:center;"> 33268.01 </td>
+   <td style="text-align:center;"> 2.62 </td>
+   <td style="text-align:center;"> 8.11 </td>
+   <td style="text-align:center;"> 16.57 </td>
+   <td style="text-align:center;"> 19.02 </td>
+   <td style="text-align:center;"> 1.98 </td>
+  </tr>
+</tbody>
+</table>
+
+</div>
+</div>
+<p><em>Source: Dominick’s Dataset</em></p>
+<p>Visst vi fortsetter med eksempelet fra forrige avsnitt med Joliet og Aurora området kan en av grunnene til at total salget er så forskjellig være at i Joliet området har butikken truffet bra med sortimentet mot sin kundegruppe, og truffet mindre bra i Aurora. Det kan derfor være interessant for ledelsen og se på produktpopularitet sammen med geografisk lokasjon og kundegruppe. På denne måten kan man finne den beste kombinasjonen av varer der man ønsker å starte ett nytt utsalg. Under følger en figur som viser de beste og dårligste produktene etter totalt salg.</p>
+<div class="cell">
+
+</div>
+<div class="cell">
+
+</div>
+<div class="cell">
+<div class="cell-output-display">
+<p><img src="SOK-1005_Prosjektoppgave_V23_files/figure-html/unnamed-chunk-35-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+<p>Andre analyser man bør gjennomføre for å finne den beste lokasjonen for ett nytt utsalg er en markedsanalyse og salgsanalyse. Markedsanalysen fokuserer på markedet og konkurransen på potensielle området. Hensikten med en slik analyse er å se om markedet i området allerede er “fullt opp” av konkurrenter, altså hvor stor etterspørsel det er i området. En salgsanalyse vil gi informasjon om fremtidig etterspørsel på aktuelle området. Dette vil gi ledelsen en indikasjon på om potensielle området vil kunne gjøre det bra i framtiden. Dette er større og mer omfattende rapporten enn denne analysen.</p>
+</section>
+<section id="kilder" class="level1">
+<h1>Kilder</h1>
+<ul>
+<li>James M. Kilts Center, University of Chicago Booth School of Business. (2018, oktober). <em>Dominick’s Dataset.</em> <a href="https://www.chicagobooth.edu/research/kilts/datasets/dominicks" class="uri">https://www.chicagobooth.edu/research/kilts/datasets/dominicks</a></li>
+<li>R Graph Gallery. (I.D.). <em>Donut chart with ggplot2.</em> <a href="https://r-graph-gallery.com/128-ring-or-donut-plot.html" class="uri">https://r-graph-gallery.com/128-ring-or-donut-plot.html</a></li>
+</ul>
+</section>
+
+</main>
+<!-- /main column -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const clipboard = new window.ClipboardJS('.code-copy-button', {
+    target: function(trigger) {
+      return trigger.previousElementSibling;
+    }
+  });
+  clipboard.on('success', function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    setTimeout(function() {
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  });
+  function tippyHover(el, contentFn) {
+    const config = {
+      allowHTML: true,
+      content: contentFn,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start'
+    };
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      return note.innerHTML;
+    });
+  }
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const cites = ref.parentNode.getAttribute('data-cites').split(' ');
+    tippyHover(ref, function() {
+      var popup = window.document.createElement('div');
+      cites.forEach(function(cite) {
+        var citeDiv = window.document.createElement('div');
+        citeDiv.classList.add('hanging-indent');
+        citeDiv.classList.add('csl-entry');
+        var biblioDiv = window.document.getElementById('ref-' + cite);
+        if (biblioDiv) {
+          citeDiv.innerHTML = biblioDiv.innerHTML;
+        }
+        popup.appendChild(citeDiv);
+      });
+      return popup.innerHTML;
+    });
+  }
+});
+</script>
+</div> <!-- /content -->
+
+
+
+</body></html>

@@ -1,0 +1,758 @@
+---
+title: "SOK-1005_Prosjektoppgave_V23"
+author: "06"
+format: html
+editor: visual
+echo: FALSE
+warning: FALSE
+---
+
+# Introduksjon
+
+Bakgrunnen for denne prosjektoppgaven i SOK-1005 (datavitenskap for økonomer) er at jeg er ansatt som analytiker i Insight Analytics (IA), og selskapet som eier dataen jeg skal benytte meg av har lyst ut en anbudskonkurranse. De ønsker å få utviklet et system som rapporterer salg for alle utsalgssteder i sitt konsern. Dataen skal benyttes for å vise hva jeg kan levere på. Alt potensiell data som kan bli inkludert i oppgave 2-4 vil ikke bli visualisert og fokuset vil være på korte, men presise rapporter som raskt gir ledelsen ett overblikk over selskapets resultat. Relevant data som ikke blir visualisert vil bli nevnt i tekst format og kan bli lagt inn visst selskapet velger Insight Analytics (IA).
+
+Dataen som skal benyttes i denne oppgaven er hentet fra [Dominick's Dataset](https://www.chicagobooth.edu/research/kilts/datasets/dominicks). Datasettet dekker skannerdata på butikknivå samlet inn hos Dominick's Finer Foods over en periode på mer enn syv år. Datasettet inneholder to typer filer: kategorispesifikke filer og generelle filer. De generelle filene inneholder informasjon om alle kategoriene i prosjektet.
+
+```{r, warning = FALSE}
+# Clearing the environment.
+rm(list=ls())
+
+# Loading packages.
+suppressPackageStartupMessages({
+library(tidyverse)
+library(knitr)
+library(gridExtra)
+library(ggpubr)
+library(ggmap)
+library(purrr)
+library(rstudioapi)
+library(kableExtra)})
+```
+
+```{r, message = FALSE}
+# LOading the data from task 1.
+data <- read_csv("Data/Dataframe_Project.csv")
+```
+
+```{r}
+# Creating a custome theme() function.
+theme_mood_v1 <- function() {
+  theme_minimal() +
+    theme(
+      plot.background = element_rect(fill = "white", color = NA),
+      plot.margin = unit(c(5, 10, 5, 10), units = "mm"),
+      plot.title = element_text(face = "bold.italic", color = "gray10"),
+      axis.title = element_text(face = "bold", color = "gray10"),
+      axis.text = element_text(color = "gray10"),
+      legend.text = element_text(color = "gray10"),
+      legend.title = element_text(face = "bold", color = "gray10"),
+      panel.grid = element_line(color = "gray60"),
+      axis.text.x = element_text(angle = 70, vjust = 1, hjust = 1)
+    ) }
+
+
+# Colors i will use on figures.
+colors = c("#00A19B", "#294643", "#FF8000", "#2173B8")
+```
+
+```{r}
+# Creating a custome theme() function.
+theme_mood_v2 <- function() {
+  theme_minimal() +
+    theme(
+      plot.background = element_rect(fill = "white", color = NA),
+      plot.margin = unit(c(5, 10, 5, 10), units = "mm"),
+      plot.title = element_text(face = "bold.italic", color = "gray10"),
+      axis.title = element_text(face = "bold", color = "gray10"),
+      axis.text = element_text(color = "gray10"),
+      legend.text = element_text(color = "gray10"),
+      legend.title = element_text(face = "bold", color = "gray10"),
+      panel.grid = element_line(color = "gray90"),
+      legend.position = "bottom"
+    ) }
+```
+
+# Innhenting av data (oppgave 1)
+
+I oppgave 1 skal vi skrive R/Python kode som slår sammen de 4 datasettene hentet fra [Dominick's Dataset](https://www.chicagobooth.edu/research/kilts/datasets/dominicks). Denne oppgaven er gjennomført i en separat qmd fil i dette GitHub reposetoriet: Data/SOK-1005_Prosjektoppgave_V23_Data.qmd. Dataen fra denne qmd filen er blitt lagret i samme mappe som en csv fil (Data/Dataframe_Project.csv). Det er denne filen vi skal bruke videre i denne prosjektoppgaven.
+
+# Ukentlig salgsrapport (oppgave 2)
+
+I oppgave 2 skal vi benytte dataen i oppgave 1 til en ukentlig salgsrapport til et enkelt utsalg.
+
+En ukentlig salgsrapport for et enkelt utsalg bør gi en oversikt over produktets ytelse, identifisere trender og utforske områder som kan forbedres. I denne rapporten vil vi ta utgangspunkt i at uke 18 er den aktuelle uken og at ledelsen ser på denne rapporten i starten av uke 19. Nedenfor følger noen punkter og figurer jeg mener bør være en del av denne salgsrapporten.
+
+**Ukentlig salgssammendrag**
+
+Det ukentlige salgssammendraget bør inneholde ett sammendrag av salget den aktuelle uken og/eller sammenlignes med tidligere uker. Hensikten med denne oversikten er at ledelsen raskt får en forståelse av hvordan produktet presterer denne uken og identifisere eventuelle endringer i fra trenden. Tabellene nedenfor viser det totale salget i antall, gj.snittlig fortjeneste, gj.snittlig salgspris og det totale salget (USD). Med bruk av en slik tabell kan ledelsen enkelt se mønster og hva som er gjort forskjellig den aktuelle uken mot tidligere uker.
+
+***Chicken pasta summary all stores, week 15 - 18, 1993***
+
+```{r}
+# Table. 
+
+# Filtering for a single product in weeks 15 to 18.
+week_summary <- data %>%
+  filter(DESCRIP == "HLTHY CHOICE CHKN PA") %>%
+  filter(WEEK == c(15, 16, 17, 18))
+
+# Remving data i dont need.
+week_summary <- week_summary[, 1:20]
+
+# Grouping the data per week and within each week i compute the summary statistics i need. 
+week_summary_values <- week_summary %>%
+  group_by(WEEK) %>%
+  summarize(total_sale = sum(MOVE),
+            avg_profitt = round(mean(PROFIT), digits = 2),
+            avg_price = round(mean(PRICE), digits = 2),
+            sum_sale = sum(SALES),
+            net_profit = round(sum(sum_sale*(avg_profitt/100)), digits = 2))
+
+# Renaming.
+week_summary_table <- week_summary_values %>%
+  rename("Week" = WEEK,
+         "Total sold (qty)" = total_sale,
+         "Avg. profitt (%)" = avg_profitt,
+         "Avg. price (USD)" = avg_price,
+         "Total sale (USD)" = sum_sale,
+         "Net Profit (USD)" = net_profit)
+  
+# Creating a custome table.
+week_summary_table <- week_summary_table %>%
+  kbl(align = c(rep("c"))) %>% # Aligning with center (c).
+  kable_styling(bootstrap_options = "striped") %>% # Selecting the style i want. 
+  row_spec(4, italic = T, bold = T, background = "#B2D2A4") # Higlighting row 4. 
+```
+
+```{r}
+# Showing the table.
+week_summary_table
+```
+
+*Source: Dominick's Dataset*
+
+Når selskapet er så stort som det er i dette datasettet kan det også være hensiktsmessig og se på hvilke regioner/butikker som totalt sett har solgt mest den aktuelle uken. På denne måten kan ledelsen gå inn å se på butikken/butikkene som har solgt mest og se hva de gjør annerledes. På figuren under kan vi se total salg per by/region, dette kan også gjøres med butikker.
+
+```{r}
+# Chicken pata total sales figure. 
+
+# Filtering the last df to only include week 18.
+week_summary_18 <- week_summary %>%
+  filter(WEEK == c(18))
+
+# Creating figure showing total sales per city.
+week_summary_figure <- week_summary_18 %>% # Using only data from week 18. 
+  ggplot(aes(x = reorder(city, -SALES), y = SALES)) + # Specifying x and y.
+  geom_bar(stat = "identity", position = "dodge", fill = "#294643") + # Bar plot. 
+  labs(title = "Chicken pasta total sales per city, week 18, 1993", 
+       x = " ",
+       y = "Total sales (USD)",
+       caption = "Source: Dominick's Dataset") + # Adding labels. 
+  theme_mood_v1() + # Using the custome theme.
+  theme(legend.position = "none") # Removing legend.
+```
+
+```{r}
+# Showing figure.
+week_summary_figure
+```
+
+I begge figurene over kan det også være hensiktsmessig å se på tall fra samme uke året før. Dette vil gi ledelsen ett bedre bilde om hvordan utviklingen egentlig har vært. Visst noen produkter selger bedre på forskjellige årstider er det naturlig med oppgang/nedgang i perioder. Men visst man sammenligner med året før vil forutsetningene for salg være likere. Det kan også være hensiktsmessig å se på daglig data for å få en oversikt over om produktet selger bedre på noen dager enn andre. I denne prosjektoppgaven har vi kun valgt data fra 1 år, på ukentlig nivå, så dette vil ikke bli visualisert.
+
+# Månedlig salgsrapport (oppgave 3)
+
+I oppgave 3 skal vi benytte dataen i oppgave 1 til en månedlig salgsrapport på aggregert nivå til konsernledelsen.
+
+En månedlig salgsrapport på aggregert nivå bør gi konsernledelsen en oversikt over selskapet samlede salgsytelse og nøkkelinformasjon som gir innsikt i de forskjellige butikkene/områdenes resultater som kan bidra i beslutningsprosesser. I denne rapporten vil vi ta utgangspunkt i at uke 18 er den aktuelle uken og at ledelsen ser på denne rapporten i starten av uke 19. Det vil i denne rapporten være fokus på brutto total salg, dette kan endres til netto ved å gange med avg. profitt variabelen. Det vil ikke være hensiktsmessig å ha begge deler siden figurene vil se helt lik ut bare en prosentandell høyere/lavere. Nedenfor følger noen punkter jeg mener bør være en del av den månedlige salgsrapporten.
+
+**Månedlig salgssammendrag**
+
+Et månedlig salgssammendrag bør vise konsernledelsen de månedlige salgsresultatene. På figuren nedenfor kan vi se de totale ukentlige resultatene gjennom hele året så langt, samt at det er lagt inn en "dummy" som representerer året før. Hensikten med denne figuren er å gi konsernledelsen en forståelse for konsernets generelle ytelse og identifisere trender, som f.eks. uke 16. Med å sammenligne med året før vil man kunne si mere om det er trender som gjentar seg eller om det er mer "tilfeldig".
+
+```{r}
+# Monthly total sales frozen dinner. 
+
+# Grouping the data per week and within each week i compute the summary statistics i need. 
+month_summary <- data %>%
+  filter(WEEK %in% c(2:18)) %>%
+  group_by(WEEK) %>%
+  summarize(total_sale = sum(MOVE),
+            avg_profitt = round(mean(PROFIT), digits = 2),
+            avg_price = round(mean(PRICE), digits = 2),
+            sum_sale = sum(SALES))
+
+# This code is almost equal to the one in the last task and i could have created a function where i just change weeks. But i like the controll with writing it again and for the "training". This will be the case in the entire report, including figures. I will however give an example of what this function could look like:
+
+# Summary function.
+summary_func <- function(data, start, end)
+  {summary <- data %>%
+    filter(WEEK %in% c(start:end)) %>%
+    group_by(WEEK) %>%
+    summarize(total_sale = sum(MOVE),
+            avg_profitt = round(mean(PROFIT), digits = 2),
+            avg_price = round(mean(PRICE), digits = 2),
+            sum_sale = sum(SALES))
+  
+  return(summary)}
+
+# How to use. 
+func_result <- summary_func(data, 2, 18)
+```
+
+```{r}
+# Monthly total sales frozen dinner. 
+# Dummy variable. 
+
+# Creating a list from 2 - 18.
+week <- c(2:18)
+
+# Creating a list with 17 "random" dummy values between 50.000 and 100.000
+value_month_sales <- runif(17, 50000, 100000)
+
+# Creating dummy df. 
+month_dummy <- data.frame(week, value_month_sales)
+```
+
+```{r}
+# Monthly total sales frozen dinner. 
+
+# Creating the monthly total sales frozen dinner figure. 
+fig_month_summary <- ggplot() +
+  geom_line(data = month_dummy, aes(x = week, y = value_month_sales,
+                                    color = "Dummy last year (random)"),
+            linewidth = 1) + # Plotting the dummy variable. 
+  geom_line(data = month_summary, aes(x = WEEK, y = sum_sale, 
+                                      color = "Total sale (USD)"),
+            linewidth = 1) + # Plotting the data. 
+  labs(x = "Week", y = "Total sales (USD)", 
+       title = "Frozen dinner total sales in all stores, week 2 - 18, 1993", 
+       caption = "Source: Dominick's Dataset") + # Adding labels. 
+  scale_color_manual(name = " ",
+                     breaks = c("Total sale (USD)", "Dummy last year (random)"),
+                     values = c("Total sale (USD)" = "#FF8000",
+                                "Dummy last year (random)" = "#294643")) + 
+  # Manualy changing colors for the lines in the plot. 
+  scale_x_continuous(n.breaks = 10) + # Setting x-axis thicks.
+  scale_y_continuous(labels=function(x) 
+    format(x, big.mark = ".", scientific = FALSE)) + 
+  # Setting "." as the seperator on the y-axis and making sure i get actuall num.
+  theme_mood_v2() # Adding custome theme. 
+
+# Showing the figure. 
+fig_month_summary 
+```
+
+**Salg etter produkt/merke**
+
+Det vil også være hensiktsmessig for ledelsen å få ett overblikk over ytelsen til merkene blant "frozen dinner" produktene. Dette vil kunne hjelpe ledelsen i framtidige avgjørelsen om hvilke merker, eventuelt produkter de vil fortsette å selge, og hvilke de vil bytte ut. På figuren nedenfor ser vi dette visualisert.
+
+```{r}
+# Donut chart.
+
+# Grouping the data per week and within each week i compute the total sales.
+month_summary_brands <- data %>%
+  filter(WEEK %in% c(2:18)) %>%
+  group_by(BRAND) %>%
+  summarize(total = sum(SALES))
+
+# Computing the percetanges.
+month_summary_brands$fraction <- month_summary_brands$total / sum(month_summary_brands$total)
+
+# Computing the top of each rectangle.
+month_summary_brands$ymax = cumsum(month_summary_brands$fraction)
+
+# Computing the bottom of each rectangle
+month_summary_brands$ymin = c(0, head(month_summary_brands$ymax, n = -1))
+
+# COmputing the label position.
+month_summary_brands$position <- (month_summary_brands$ymax + month_summary_brands$ymin) / 2
+
+# Computing the labels. 
+month_summary_brands$label <- paste0(month_summary_brands$BRAND, "\n Value: ", round(month_summary_brands$total), "\n USD")
+
+# Source: R Graph-Gallery
+```
+
+```{r}
+# Donut chart. 
+
+# The donut chart is created using a rectangular plot, with the values stacked on top of eachother. Then by adding the coord_polar we remove the corners and get a pieplot. Then we limit the plot on the x-axis between 2-4 and this removes the middle part, creating a donut. 
+
+# Creating the dont chart.
+fig_month_summary_brands <- ggplot(data = month_summary_brands,
+                                   aes(ymax = ymax, ymin = ymin,
+                                       xmax = 4, xmin = 3, fill = BRAND)) +
+  # Setting up the plot.
+  geom_rect() + # Rectangular plot.
+  geom_label(x = 3.5, aes(y = position, label = label), size = 2.5) + # Adding labs
+  scale_fill_brewer(palette = 4) + # Chosing color palette.
+  coord_polar(theta = "y") + # Removing the corners of the rect. 
+  xlim(c(2, 4)) + # Limiting the plot, removing the center.
+  labs(title = "Frozen dinner distributed by brand total sales, week 2 - 18, 1993",
+       caption = "Source: Dominick's Dataset and R Graph Gallery") + 
+  # Addubg tutke and capt. 
+  theme_void() + # Choosing a premade theme.
+  theme(legend.position = "none") + # Removing legend. 
+  theme(plot.title = element_text(face = "bold.italic", color = "gray10"))
+  # Editing the plots title to make it match the report.. 
+
+# Showing the figure. 
+fig_month_summary_brands
+
+# Source: R Graph-Gallery
+```
+
+**Kundeinformasjon**
+
+Kundeinformasjonen bør gi ledelsen ett overblikk over utviklingen av antall kunder og hvilke kunder som har handlet de siste månedene. Dette vil hjelpe ledelsen med å forstå sammensetningen av kunder som handler i deres butikk, og i framtiden kunne ta avgjørelser som styrker kunderelasjoner og øke salget. Nedenfor kan vi se antall kunder per uke så lang i år. Her kan det også inkluderes ett "pie-chart" av de største kundegruppene, men siden butikkene er lokalisert på så forskjellige området vil det på aggregert nivå ikke kunne gi nøyaktig nokk data. Vi vil komme tilbake til hvordan dette kan gjøres i oppgave 4.
+
+```{r}
+# Customer count.
+
+# Selecting the data i need.  
+customer <- data %>%
+  select(WEEK, custcoun)
+
+# Grouping the data per week and within each week i compute the summary statistics i need. 
+customer <- customer %>%
+  filter(WEEK %in% c(2:18)) %>%
+  group_by(WEEK) %>%
+  summarize(ccount = sum(custcoun))
+```
+
+```{r}
+# Customer count. 
+
+# Creating the figure. 
+fig_ccount <- ggplot() +
+  geom_line(data = customer, aes (x = WEEK, y = ccount, 
+                                  color = "Customer count"),
+            linewidth = 1) +
+  labs(x = "Week", y = " ", 
+       title = "Customer count in all stores, week 2 - 18, 1993",
+       caption = "Source: Dominick's Dataset") +
+  scale_color_manual(name = " ",
+                     breaks = c("Customer count"),
+                     values = c("Customer count" = "#00A19B")) +
+  scale_x_continuous(n.breaks = 10) +
+  scale_y_continuous(labels=function(x) 
+    format(x, big.mark = ".", scientific = FALSE)) +
+  theme_mood_v2()
+# All functions in this figure has been explained previously. 
+
+
+# Showing the figure.
+fig_ccount
+```
+
+**Salg etter geografisk område**
+
+Etter at ledelsen har fått en oversikt over hele konsernet på aggregert nivå kan det være hensiktsmessig å gi en oversikt over hvilke butikker som har solgt mest og minst av "frozen dinner" produktene. Dette kan hjelpe ledelsen med å identifisere hvilke butikker som presterer best og hvilke butikker som kan forbedres. Her kan ledelsen se på hva butikkene som selger mest gjør, kontra butikkene som selger minst.
+
+```{r}
+# Best/worst stores.
+
+# Grouping the data per store and within each store i compute the summary statistics i need. 
+monthly_best_worst <- data %>%
+  filter(WEEK %in% c(2:18)) %>%
+  group_by(STORE) %>%
+  summarize(total_sale = sum(MOVE),
+            avg_profitt = round(mean(PROFIT), digits = 2),
+            avg_price = round(mean(PRICE), digits = 2),
+            sum_sale = sum(SALES))
+
+# Arranging the df in descending order and selecting (slice) the top 5 stores.
+monthly_best <- monthly_best_worst %>%
+  arrange(desc(sum_sale)) %>%
+  slice_head(n = 5)
+
+# Arranging the df in its natural order (ascending) and selecting (slice) the top 5 stores. 
+monthly_worst <- monthly_best_worst %>%
+  arrange(sum_sale) %>%
+  slice_head(n = 5)
+
+# Computing labels for the best and worst stores.
+monthly_best$label <- paste0("\n Store: ", monthly_best$STORE)
+monthly_worst$label <- paste0("\n Store: ", monthly_worst$STORE)
+```
+
+```{r}
+# Best/worst stores.
+ 
+# Creating figure showing the best stores.
+fig_monthly_best <- ggplot(data = monthly_best, 
+                           aes(x = sum_sale, y = reorder(label, sum_sale))) +
+  geom_bar(stat = "identity", position = "dodge", fill = "#294643") +
+  geom_text(aes(label = round(sum_sale)), vjust = 0.3, hjust = 1.1,
+            color = "white", size = 3) + # Adding numbers inside the bar plot. 
+  labs(title = "Top stores",
+       x = "Total sales (USD)",
+       y = " ") +
+  scale_x_continuous(labels=function(x) 
+    format(x, big.mark = ".", scientific = FALSE)) +
+  theme_mood_v2() +
+  theme(axis.text.y = element_text(face = "bold.italic", color = "gray10"))
+# All functions in this figure has been explained previously. 
+```
+
+```{r}
+# Best/worst stores.
+
+# Creating figure showing the worst stores. 
+fig_monthly_worst <- ggplot(data = monthly_worst, 
+                           aes(x = sum_sale, y = reorder(label, sum_sale))) +
+  geom_bar(stat = "identity", position = "dodge", fill = "#FF8000") +
+  geom_text(aes(label = round(sum_sale)), vjust = 0.3, hjust = 1.1,
+            color = "white", size = 3) + # Adding numbers inside the bar plot.
+  labs(title = "Bottom stores",
+       x = "Total sales (USD)",
+       y = " ",
+       caption = "Source: Dominick's Datset") +
+  scale_x_continuous(labels=function(x) 
+    format(x, big.mark = ".", scientific = FALSE)) +
+  theme_mood_v2() +
+  theme(axis.text.y = element_text(face = "bold.italic", color = "gray10"))
+# All functions in this figure has been explained previously. 
+```
+
+```{r}
+# Best/worst stores.
+
+# Creating a title for the combined figures. 
+title_01 = text_grob("Frozen dinner total sales per store, week 2 - 18, 1993", 
+                     face = "bold.italic", 
+                     size = 13)
+
+# Shwoing and combining the two figures vertically. 
+grid.arrange(fig_monthly_best, fig_monthly_worst, 
+             nrow = 2, top  = title_01)
+```
+
+Det kan også være hensiktsmessig å se på hvilke regioner/byer som selger mest total sett uavhengig av butikker for å få en indikasjon på hvor etterspørselen etter "frozen dinner" er størst. Vi vil gå enda mer i detalj på dette i oppgave 4.
+
+```{r}
+# Best/worst city.
+
+# Grouping the data per city and within each city i compute the summary statistics i need.
+monthly_city <- data %>%
+  filter(WEEK %in% c(2:18)) %>%
+  group_by(city) %>%
+  summarize(total_sale = sum(MOVE),
+            avg_profitt = round(mean(PROFIT), digits = 2),
+            avg_price = round(mean(PRICE), digits = 2),
+            sum_sale = sum(SALES)) %>%
+  na.omit() # Got na values, removing these.
+
+# Arranging the df in descending order and selecting (slice) the top 5 stores. 
+monthly_best_city <- monthly_city %>%
+  arrange(desc(sum_sale)) %>%
+  slice_head(n = 5)
+
+# Making the total sale value into a logaritmic scale because Chicago is alot bigger then the rest.
+monthly_best_city <- monthly_best_city %>%
+  mutate(sum_sale_log = log(sum_sale))
+
+# Arranging the df in its natural order (ascending) and selecting (slice) the top 5 stores. 
+monthly_worst_city <- monthly_city %>%
+  arrange(sum_sale) %>%
+  slice_head(n = 5)
+
+# Computing labels.
+monthly_best_city$label <- paste0(monthly_best_city$city)
+monthly_worst_city$label <- paste0(monthly_worst_city$city)
+```
+
+```{r}
+# Best/worst city.
+
+# Creating figure for the best city.
+fig_monthly_best_city <- ggplot(data = monthly_best_city, 
+                           aes(x = sum_sale_log, 
+                               y = reorder(label, sum_sale_log))) +
+  geom_bar(stat = "identity", position = "dodge", fill = "#00A19B") +
+  geom_text(aes(label = round(sum_sale)), vjust = 0.3, hjust = 1.1,
+            color = "white", size = 3) +
+  labs(title = "Top city's",
+       x = "Total sales (USD)",
+       y = " ",
+       caption = "Note: The x-axis is on a logarithmic scale, but the value inside the bar represents the total sales in USD.") +
+  scale_x_continuous(labels=function(x) 
+    format(x, big.mark = ".", scientific = FALSE)) +
+  theme_mood_v2() +
+  theme(axis.text.y = element_text(face = "bold.italic", color = "gray10"))
+# All functions in this figure has been explained previously. 
+```
+
+```{r}
+# Best/worst city.
+
+# Creating figure for the worst city.
+fig_monthly_worst_city <- ggplot(data = monthly_worst_city, 
+                           aes(x = sum_sale, y = reorder(label, sum_sale))) +
+  geom_bar(stat = "identity", position = "dodge", fill = "#2173B8") +
+  geom_text(aes(label = round(sum_sale)), vjust = 0.3, hjust = 1.1,
+            color = "white", size = 3) +
+  labs(title = "Bottom city's",
+       x = "Total sales (USD)",
+       y = " ",
+       caption = "Source: Dominick's Datset") +
+  scale_x_continuous(labels=function(x) 
+    format(x, big.mark = ".", scientific = FALSE)) +
+  theme_mood_v2() +
+  theme(axis.text.y = element_text(face = "bold.italic", color = "gray10"))
+# All functions in this figure has been explained previously. 
+```
+
+```{r}
+# Creating a title for the combined figures. 
+title_02 = text_grob("Frozen dinner total sales per city, week 2 - 18, 1993", 
+                     face = "bold.italic", 
+                     size = 13)
+
+# Showing and combining the two figures vertically. 
+grid.arrange(fig_monthly_best_city, fig_monthly_worst_city, 
+             nrow = 2, top  = title_02)
+```
+
+**Prognoser**
+
+Avslutningsvis i en månedlig salgsrapport kan det være gunstig for ledelsen å få ett overblikk over hvordan utviklingen kan forventes å være framover. Dette kan/bør være en egen rapport, men på figurene under kan vi se en enkel lineær modell som tar utgangspunkt i både salgene til alle butikkene, men også det totale salget. Figuren som viser alle butikkene vil gi en indikasjon av forventet salg per butikk, mens figuren som viser summen av alle butikkene vil gi en indikasjon av forventet salg på konsern nivå. Det gråe området rundt linjen på figuren med summen av alle butikkene representerer SE (standard error). En kort forklaring på dette er at SE viser feilmarginen til målingen.
+
+```{r}
+# Forecast
+
+# Grouping the data per week and store, then within each store and week i compute the summary statistics i need. 
+forecasts_store <- data %>%
+  filter(WEEK %in% c(2:18)) %>%
+  group_by(WEEK, STORE) %>%
+  summarize(sum_sale = sum(SALES))
+
+# Grouping the data per wekk and within each week i compute the summary statistics i need. 
+forecasts_total <- data %>%
+  filter(WEEK %in% c(2:18)) %>%
+  group_by(WEEK) %>%
+  summarize(sum_sale = sum(SALES))
+
+# Probably have df from before with this information, but again i like the controll and flow of creating new ones. 
+```
+
+```{r}
+# Forecast 
+
+# Creating figure forecast all stores.
+fig_forecasts_store <- ggplot() +
+  geom_point(data = forecasts_store, aes(x = WEEK, y = sum_sale, 
+                                         color = "Store's")) +
+  geom_smooth(data = forecasts_store, aes(x = WEEK, y = sum_sale, 
+                                          color = "Linear forecast"), 
+              method = lm, se = F) +
+  labs(x = "Week", y = "Total sales (USD)", 
+       title = "All store's", 
+       caption = " ") +
+  scale_color_manual(name = " ",
+                     breaks = c("Store's", "Linear forecast"),
+                     values = c("Store's" = "#189AB4",
+                                "Linear forecast" = "#FF8000")) +
+  scale_x_continuous(n.breaks = 10) +
+  scale_y_continuous(labels=function(x) 
+    format(x, big.mark = ".", scientific = FALSE)) +
+  theme_mood_v2() 
+# All functions in this figure has been explained previously. 
+```
+
+```{r}
+# Forecast
+
+# Creating figure forecast sum store.
+fig_forecasts_total <- ggplot() +
+  geom_point(data = forecasts_total, aes(x = WEEK, y = sum_sale,
+                                         color = "Sum store's")) +
+  geom_smooth(data = forecasts_total, aes(x = WEEK, y = sum_sale,
+                                          color = "Linear forecast"), 
+              method = lm, level = 0.6) +
+  labs(x = "Week", y = " ", 
+       title = "Sum store's", 
+       caption = "Source: Dominick's Dataset") +
+  scale_color_manual(name = " ",
+                     breaks = c("Sum store's", "Linear forecast"),
+                     values = c("Sum store's" = "#189AB4",
+                                "Linear forecast" = "#FF8000")) +
+  scale_x_continuous(n.breaks = 10) +
+  scale_y_continuous(labels=function(x)
+    format(x, big.mark = ".", scientific = FALSE)) +
+  theme_mood_v2() 
+# All functions in this figure has been explained previously. 
+```
+
+```{r}
+# Forecast
+
+# Creating title for the combines figures.
+title_04 = text_grob("Forecast frozen dinner total sales, 1993", 
+                     face = "bold.italic", 
+                     size = 13)
+
+# Combining the figures and showing them. 
+grid.arrange(fig_forecasts_store, fig_forecasts_total, 
+             ncol = 2, top  = title_04)
+```
+
+# Nye utsalg (oppgave 4)
+
+I oppgave 4 skal vi se på om dataen kan benyttes til å planlegge nye utsalg og hvordan konsernledelsen kan benytte dataen til å finne den beste lokasjonen.
+
+Vi vil i denne oppgaven ta utgangspunkt i at ledelsen ser på denne rapporten i starten av uke 19. For å planlegge nye utsalg kan det være hensiktsmessig å se på salgsdata etter geografisk område. På denne måten kan ledelsen identifisere områder med høyt salg, noe som kan indikere høy etterspørsel.
+
+```{r}
+# Map Chicago   
+
+# Setting up a google maps API key for ggmap.
+register_google(key = "AIzaSyD_RzhodhtTa8F_suRu1DYIFpKCFAlTl-g")
+
+# Depending on when the assignment is assessed this API-key might not work anymore. If this is the case the following code wont run because the key is required to get access to google maps, and the map over chicago. See the finished html document in this git repo too see result. The code under the map will still run smoothly. 
+```
+
+```{r}
+# Map Chicago
+
+# Collecting the data over chicago from google maps. 
+mapdata <- get_map(location = "chicago", zoom = 9)
+```
+
+```{r}
+# Map Chicago
+
+# Selecting the data i need.
+map <- data %>%
+  select(WEEK, STORE, city, SALES, long, lat)
+
+# Converting the longitude and latitude to the correct values.
+map <- map %>%
+  mutate(long = long / -10000,
+         lat = lat / 10000)
+
+# Filtering for weeks, grouping by store and findinf the sum of sales per store. Taking the mean of long and lat to easily keep the values and removing na values.
+map <- map %>%
+  filter(WEEK %in% c(2:18)) %>%
+  group_by(STORE) %>%
+  summarize(sum_sale = sum(SALES),
+            long = mean(long),
+            lat = mean(lat)) %>%
+  na.omit()
+```
+
+```{r}
+# Creating the map Chicago figure. 
+ggmap(mapdata) +
+  geom_point(data = map, aes(x = long, y = lat, 
+                             size = sum_sale, color = sum_sale)) + 
+  scale_x_continuous(name = "Longitude", limits = c(-88.4, -87.2)) +
+  scale_y_continuous(name = "Latitude", limits = c(41.4, 42.3)) +
+  scale_size_continuous(name = "Total sales (USD)") +
+  scale_color_continuous(name = " ", low = "#FFC55C", high = "#A36A00") +
+  ggtitle("Frozen dinner total sales, week 2 - 18, 1993") +
+  labs(caption = "Source: Dominick's Dataset and Google maps") +
+  theme_mood_v2() +
+  theme(legend.position = "right")
+
+# All functions in this figure has been explained previously.
+# Note: The map from google maps conatins the same long and lat as the data. This allows us to plot the data as usual.
+```
+
+På kartet over kan vi se Chicago området med alle butikkene markert etter farge og størrelse som representerer totale salg i USD. På denne måten kan ledelsen lokalisere mulige lokasjoner for nye utsalg med å se på hvor de har høye salg. For eksempel i Joliet (nede til venstre) kan vi se at det er en enkelt butikk med høyt totalt salg. Her kan det være interessant for ledelsen og se på kundeprofiler og kjøpsatferd for denne butikken slik at de får en bedre forståelse for hvorfor denne butikken selger så bra, i motsetning til butikkene i for eksempel Aurora området. Under følger en tabell som ett eksempel på disse kundegruppene.
+
+***Avg. customer groups for Joliet, week 2 - 18, 1993***
+
+```{r}
+# Joliet Table
+
+# Selecting and cleaning up the data i need. 
+joliet_customer <- data %>%
+  filter(WEEK %in% c(2:18)) %>%
+  filter(city == "JOLIET") %>%
+  select(hsizeavg, nocar, educ, age60, income, hval200) %>%
+  mutate(nocar = nocar * 100,
+         educ = educ * 100,
+         age60 = age60 * 100,
+         hval200 = hval200 * 100,
+         income = exp(income)) %>% # Converting numbers.
+  relocate(income, .before = hsizeavg) %>% # Relocating
+  rename("Avg. Household Size" = hsizeavg,
+         "% with No Vehicles" = nocar,
+         "% College Graduates" = educ,
+         "% Pop over age 60" = age60,
+         "Median Income (USD)" = income,
+         "% of household with over $200k" = hval200) %>%
+  mutate(across(everything(), ~ round(., digits = 2))) %>% # Rounding the numbers to 2 digits. 
+  summarize_all(mean) # Summerising all rows.
+
+# Creating a custome table.
+joliet_customer_table <- joliet_customer %>%
+  kbl(align = c(rep("c"))) %>%
+  kable_styling(bootstrap_options = "striped")
+
+# Showing the table.
+joliet_customer_table
+```
+
+*Source: Dominick's Dataset*
+
+Visst vi fortsetter med eksempelet fra forrige avsnitt med Joliet og Aurora området kan en av grunnene til at total salget er så forskjellig være at i Joliet området har butikken truffet bra med sortimentet mot sin kundegruppe, og truffet mindre bra i Aurora. Det kan derfor være interessant for ledelsen og se på produktpopularitet sammen med geografisk lokasjon og kundegruppe. På denne måten kan man finne den beste kombinasjonen av varer der man ønsker å starte ett nytt utsalg. Under følger en figur som viser de beste og dårligste produktene etter totalt salg.
+
+```{r}
+# Grouping the data by desciption and then within each descitption i compute the summary statistics i need. 
+joliet_goods <- data %>%
+  filter(WEEK %in% c(2:18)) %>%
+  filter(city == "JOLIET") %>%
+  group_by(DESCRIP) %>%
+  summarize(sum_sale = sum(SALES))
+
+# Selecting the best goods..
+joliet_goods_best <- joliet_goods %>%
+  arrange(desc(sum_sale)) %>%
+  slice_head(n = 5)
+  
+# Selecting the worst good.
+joliet_goods_worst <- joliet_goods %>%
+  arrange(sum_sale) %>%
+  slice_head(n = 5)
+```
+
+```{r}
+# Creating figure with best goods.
+fig_jo_best <- joliet_goods_best %>%
+  ggplot(aes(x = reorder(DESCRIP, -sum_sale), y = sum_sale)) +
+  geom_bar(stat = "identity", position = "dodge", fill = "#294643") +
+  labs(title = "Best frozen dinner product",
+       x = " ",
+       y = "Total sales (USD)") +
+  theme_mood_v1()
+
+# Creating figure with worst goods.
+fig_jo_worst <- joliet_goods_worst %>%
+  ggplot(aes(x = reorder(DESCRIP, -sum_sale), y = sum_sale)) +
+  geom_bar(stat = "identity", position = "dodge", fill = "#FF8000") +
+  labs(title = "Worst frozen dinner product",
+       x = " ",
+       y = " ",
+       caption = "Source: Dominick's Dataset") +
+  theme_mood_v1()
+```
+
+```{r}
+# Creating title for the combines figures.
+title_03 = text_grob("Frozen dinner products for Joliet, Week: 2 - 18, 1993", 
+                     face = "bold.italic", 
+                     size = 13)
+
+# Showing figure and combining figures.
+grid.arrange(fig_jo_best, fig_jo_worst, 
+             ncol = 2, top  = title_03)
+```
+
+Andre analyser man bør gjennomføre for å finne den beste lokasjonen for ett nytt utsalg er en markedsanalyse og salgsanalyse. Markedsanalysen fokuserer på markedet og konkurransen på potensielle området. Hensikten med en slik analyse er å se om markedet i området allerede er "fullt opp" av konkurrenter, altså hvor stor etterspørsel det er i området. En salgsanalyse vil gi informasjon om fremtidig etterspørsel på aktuelle området. Dette vil gi ledelsen en indikasjon på om potensielle området vil kunne gjøre det bra i framtiden. Dette er større og mer omfattende rapporten enn denne analysen.
+
+# Kilder
+
+-   James M. Kilts Center, University of Chicago Booth School of Business. (2018, oktober). *Dominick's Dataset.* <https://www.chicagobooth.edu/research/kilts/datasets/dominicks>
+-   R Graph Gallery. (I.D.). *Donut chart with ggplot2.* <https://r-graph-gallery.com/128-ring-or-donut-plot.html>

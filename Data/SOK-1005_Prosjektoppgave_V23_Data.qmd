@@ -1,0 +1,270 @@
+---
+title: "SOK-1005_Prosjektoppgave_V23_Data"
+author: "06"
+format: html
+editor: visual
+---
+
+## Preparation
+
+In this qmd file is the data wrangling part of my data project assignment for SOK-1005, V23.
+
+```{r, warning = FALSE}
+# Clearing the environment.
+rm(list=ls())
+
+# Loading packages.
+suppressPackageStartupMessages({
+library(tidyverse)
+library(lubridate)
+library(haven)})
+```
+
+```{r}
+# Using the code from the project description to get the assigned category.
+category <- c("Analgesics","Bath Soap","Beer","Bottled Juices","Cereals",
+              "Cheeses","Cigarettes","Cookies","Crackers","Canned Soup",
+              "Dish Detergent","Front-end-candies","Frozen Dinners",
+              "Frozen Entrees","Frozen Juices","Fabric Softeners",
+              "Grooming Products","Laundry Detergents", "Oatmeal",
+              "Paper Towels","Soft Drinks","Shampoos","Snack Crackers",
+              "Soaps","Toothbrushes","Canned Tuna","Toothpastes",
+              "Bathroom Tissues")
+
+letter2number <- function(x) {utf8ToInt(x) - utf8ToInt("A") + 1L}
+seed_number <- sum(letter2number("Even"))
+set.seed(seed_number)
+sample(category, 1)
+```
+
+```{r, message = FALSE}
+# Loading in the data.
+demo           <- read_dta("Data_Files/Demographics.dta")
+ccount         <- read_dta("Data_Files/Customer Count.dta")
+upc            <- read_csv("Data_Files/UPC Frozen Dinner.csv")
+movement       <- read_csv("Data_Files/Movement Frozen Dinner.csv")
+```
+
+## UPC - Data wrangling
+
+The UPC file contain a description of each UPC in a category. The data is set up as follows:
+
+1.  **UPC**
+
+    The last five digits of the UPC number identify the product, the remaining digits identify the manufacturer.
+
+2.  **Commodity Code**
+
+    This is DFF's version of categories. A single file can contain more than one commodity code. However, a single commodity code cannot be present in more than one UPC file.
+
+3.  **Item Code**
+
+    This variable tells us if the same product has multiple "generations" and if the item was warehoused or drop shipped.
+
+4.  **Description**
+
+    This is the products name and can contain certain characters that describes the data. In this instant we have a "\~" symbol that symbolizes that it is a discontinued item.
+
+5.  **Case**
+
+    The number in this column is the amount of cases coming from the manufacturers.
+
+For a more detailed view of the variables, see the source.
+
+Source: [Dominick's Data Manual](https://www.chicagobooth.edu/-/media/enterprise/centers/kilts/datasets/dominicks-dataset/dominicks-manual-and-codebook_kiltscenter)
+
+```{r}
+# Removing columns with irrelevant data and discontinued items.
+upc <- upc %>%
+  select(-COM_CODE, -NITEM, -CASE, -SIZE) %>%
+  filter(!str_detect(DESCRIP, "~"))
+```
+
+```{r}
+# Creating a merged list with brands i want to work with, seperated by "|".
+upc_brands <- paste(c("HLTHY", "BANQUET", "SWANSON", "SWAN", "LOONEY"),
+                    collapse = "|")
+
+# Keeping only rows where "DESCRIP" matches the upc_brands and creating new column.
+upc <- upc %>%
+  filter(grepl(upc_brands, DESCRIP)) %>%
+  mutate(BRAND = str_extract(DESCRIP, upc_brands))
+```
+
+## Movement - Data wrangling
+
+The movement file contains sales information at the store level for each UPC in a category. The information is stored on a weekly basis. The data is set up as follows:
+
+1.  **UPC**
+
+    This is the key to use while merging with the UPC file.
+
+2.  **Price, Quantity and Movement**
+
+    The manufacturer will sometimes bundle products. In such occasion the quantity variable will indicate the size of the bundle. The price will reflect the total price of the bundle. The movement variable will reflect the number of actual items sold, not the number of bundles. Hence to compute the total dollar sales we must do the following: $Sales = Price * Move / Qty$
+
+3.  **Profit**
+
+    The profit variable indicates the gross margin in percent that DFF makes on the sales of the UPC. A profit of 25.3 means that DFF makes 25.3 cents on the dollar for each item sold. This yields a cost of good sold of 74.4 cents.
+
+4.  **Sales**
+
+    The sales variable indicates whether the product was sold on a promotion that week.
+
+5.  **OK**
+
+    This is a flag set to indicate that the data for that week are suspect.
+
+For a more detailed view of the variables, see the source.
+
+Source: [Dominick's Data Manual](https://www.chicagobooth.edu/-/media/enterprise/centers/kilts/datasets/dominicks-dataset/dominicks-manual-and-codebook_kiltscenter)
+
+```{r}
+# Removing columns with irrelevant data.
+movement <- movement %>%
+  filter(OK > 0) %>%
+  select(-PRICE_HEX, -PROFIT_HEX, -OK)
+```
+
+```{r}
+# Selecting weeks that correspond to 1993.
+movement <- movement %>%
+  filter(WEEK > 172 & WEEK < 226)
+```
+
+```{r}
+# Creating a new variable "SALES", containing total dollar sales and filtering > 0.
+movement <- movement %>%
+  mutate(SALES = PRICE * MOVE/QTY) %>%
+  filter(SALES > 0)
+```
+
+## UPC & Movement - Merging
+
+```{r}
+# Merging the UPC & Movement data.
+upc_movement <- left_join(upc, movement, by = "UPC")
+```
+
+```{r}
+# Rearranging the data so its easier to look at. 
+upc_movement <- upc_movement %>%
+  relocate(WEEK, .before = UPC)
+```
+
+## Customer Count - Data wrangling
+
+The customer count file includes information about in-store traffic. The data is store specific and on a daily basis. The customer count data refers to the number of customers visiting the store and purchasing something. Also in the customer count file is a total dollar sales and total coupons redeemed figure.
+
+In this assignment we will only be using data from 1993 and the data will be aggregated too weekly observation. The customer count file has a lot of variables, see the source page 4, 5 and 6 for full overview.
+
+Source: [Dominick's Data Manual](https://www.chicagobooth.edu/-/media/enterprise/centers/kilts/datasets/dominicks-dataset/dominicks-manual-and-codebook_kiltscenter)
+
+```{r}
+# Removing all na values.
+ccount <- na.omit(ccount)
+
+# Transforming the date column to date format.
+ccount$date <- as.Date(ccount$date, "%y%m%d")
+
+# Filtering for year 1993, same at the movement file.
+ccount <- ccount %>%
+  filter(date > "1992-12-31" & date < "1994-01-01")
+```
+
+```{r}
+# Renaming store and week for the merge later.
+ccount <- ccount %>%
+  rename(STORE = store, WEEK = week)
+```
+
+```{r}
+# Aggregating to weekly data.
+ccount <- ccount %>%   
+  group_by(WEEK,STORE) %>% 
+  summarise_at(.vars = c("grocery","dairy","frozen","bottle","mvpclub",
+                         "groccoup","meat","meatfroz","meatcoup","fish",
+                         "fishcoup", "promo","promcoup", "produce", "bulk",
+                         "saladbar","prodcoup","bulkcoup","salcoup","floral",
+                         "florcoup", "deli", "deliself", "deliexpr","convfood", 
+                         "cheese","delicoup","bakery", "pharmacy", "pharcoup", 
+                         "gm", "jewelry", "cosmetic","haba","gmcoup", "camera",  
+                         "photofin", "video", "videoren", "vidcoup", "beer", 
+                         "wine", "spirits", "miscscp", "mancoup", "custcoun", 
+                         "ftgchin", "ftgccoup","ftgital", "ftgicoup","daircoup",
+                         "frozcoup", "habacoup", "photcoup", "cosmcoup", 
+                         "ssdelicp", "bakcoup", "liqcoup"), .funs = sum) 
+```
+
+## UPC, Movement & CCount - Merging
+
+```{r}
+# Merging UPC, Movement & CCOunt files.
+upc_movement_ccount <- left_join(upc_movement, ccount, by = c("WEEK", "STORE"))
+```
+
+## Demographic - Data wrangling
+
+The demographics file consists of store-specific demographic data. In the data there are a lot of variables, see the source page 7 and 8 for a full overview.
+
+Source: [Dominick's Data Manual](https://www.chicagobooth.edu/-/media/enterprise/centers/kilts/datasets/dominicks-dataset/dominicks-manual-and-codebook_kiltscenter)
+
+```{r}
+# Removing columns with irrelevant data.
+demo <- demo %>%
+  select(-gini, -name, -weekvol, -mmid)
+
+# Renaming STORE for the merge.
+demo <- demo %>%
+  rename(STORE = store)
+```
+
+## UPC, Movement, CCount & Demo - Merging
+
+```{r}
+# Merging UPC, Movementm, CCount & Demographics files.
+Dataframe_Project <- left_join(upc_movement_ccount, demo, by = "STORE")
+```
+
+## Creating final file
+
+```{r}
+# Relocating.
+Dataframe_Project <- Dataframe_Project %>%
+  relocate(zip, .before = STORE) %>%
+  relocate(lat, .before = STORE) %>%
+  relocate(long, .before = STORE)
+
+# Way to much data, selecting relevant columns.
+Dataframe_Project <- Dataframe_Project[, 1:97]
+Dataframe_Project <- Dataframe_Project[, -63:-69]
+
+# Rearranging the data so its easier to look at. 
+Dataframe_Project <- Dataframe_Project %>%
+  relocate(city, .before = MOVE) %>%
+  relocate(zone, .before = MOVE) %>%
+  relocate(scluster, .before = MOVE)
+
+# Making weeks go from 1-52.
+Dataframe_Project <- Dataframe_Project %>%
+  mutate(WEEK = WEEK - 172)
+```
+
+```{r}
+# Creating a CSV file.
+write.csv(Dataframe_Project, "Dataframe_Project.csv")
+```
+
+## Source
+
+-   James M. Kilts Center, University of Chicago Booth School of Business. (October, 2018). *Dominick's Dataset.* <https://www.chicagobooth.edu/research/kilts/datasets/dominicks>
+
+-   James M. Kilts Center, University of Chicago Booth School of Business. (October, 2018). *Dominick's data manual.* <https://www.chicagobooth.edu/-/media/enterprise/centers/kilts/datasets/dominicks-dataset/dominicks-manual-and-codebook_kiltscenter>
+
+-   James M. Kilts Center, University of Chicago Booth School of Business. (October, 2018). *Frozen Dinners UPC.csv.* [Download](https://www.chicagobooth.edu/-/media/enterprise/centers/kilts/datasets/dominicks-dataset/upc_csv-files/upcfrd.csv)
+
+-   James M. Kilts Center, University of Chicago Booth School of Business. (October, 2018). *Frozen Dinners Movement.csv.* [Download](https://www.chicagobooth.edu/-/media/enterprise/centers/kilts/datasets/dominicks-dataset/movement_csv-files/wfrd.zip)
+
+-   James M. Kilts Center, University of Chicago Booth School of Business. (October, 2018). *Customer Count File.dta.* [Download](https://www.chicagobooth.edu/boothsitecore/docs/dff/store-demos-customer-count/ccount_stata.zip)
+
+-   James M. Kilts Center, University of Chicago Booth School of Business. (October, 2018). *Demographics File.dta.* [Download](https://www.chicagobooth.edu/boothsitecore/docs/dff/store-demos-customer-count/demo_stata.zip)
